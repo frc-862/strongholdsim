@@ -71,7 +71,7 @@ class Stronghold
     @mode = :end_game
     200.times do 
       each_robot do |robot|
-        robot.tick(self)
+        robot.internal_tick(self)
       end 
       @clock += 1
     end
