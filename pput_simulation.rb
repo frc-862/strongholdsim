@@ -91,7 +91,7 @@ class Simulation
   end
 end
 
-sim = Simulation.new(ARGV.first)
+sim = Simulation.new(ARGV.first || "Game")
 sim.play
 sim.results
 
