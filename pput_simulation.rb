@@ -9,7 +9,9 @@ require_relative 'base_robot'
 require_relative 'high_goal_cycle'
 require_relative 'defender'
 require_relative 'clear_and_pass'
+require_relative 'knight'
 require_relative 'clear_and_shoot'
+require_relative 'trebuchet'
 
 class Simulation
   GAMES_FILE = 'games.xlsx'
@@ -45,6 +47,17 @@ class Simulation
 
     @stronghold.blue_alliance(*blue)
     @stronghold.red_alliance(*red)
+
+    red = []
+    blue = []
+    (9..12).to_a.each do |row|
+      data = sheet.row(row)
+      red << data[0].downcase.strip.gsub(/\s+/,"_").to_sym
+      blue << data[2].downcase.strip.gsub(/\s+/,"_").to_sym
+    end
+
+    @stronghold.set_red_defenses(red)
+    @stronghold.set_blue_defenses(blue)
   end
 
   def build_robot(stats, strategy)

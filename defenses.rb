@@ -1,4 +1,4 @@
-DefenseTypes = %i(portcullis cheval_de_frise moat ramparts drawbridge sally_port rock_wall rough_terrain low_bar)
+DefenseTypes = %i(portcullis chevel_de_frise moat ramparts drawbridge sally_port rock_wall rough_terrain low_bar)
 
 def random_defenses
   defenses = [[:low_bar, nil, nil, nil, nil],[:low_bar, nil, nil, nil, nil]]

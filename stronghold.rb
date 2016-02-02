@@ -1,20 +1,33 @@
 require_relative 'defenses'
 
-Struct.new("AllianceState", :score, :defense_states, :tower_strenth, :challenged, :scaled, :challenge_count, :breached)
+Struct.new("AllianceState", :score, :defense_states, :tower_strenth, :challenged, :scaled, :challenge_count, :breached, :index, :captured)
 
 class Stronghold
   attr_reader :mode
   attr_accessor :defenses
+  attr_reader :def
 
   def initialize
     @robots = []
     @mode = :auton
     @alliances = {
-      red: Struct::AllianceState.new(0, [2] * 5, 8, [false] * 3, [false] * 3, 0, false),
-      blue: Struct::AllianceState.new(0, [2] * 5, 8, [false] * 3, [false] * 3, 0, false)
+      red: Struct::AllianceState.new(0, [2] * 5, 8, [false] * 3, [false] * 3, 0, false, 1),
+      blue: Struct::AllianceState.new(0, [2] * 5, 8, [false] * 3, [false] * 3, 0, false, 0)
     }
     @defenses = random_defenses
     @clock = 0
+  end
+
+  def set_blue_defenses(d)
+    d = d.clone
+    d.unshift(:low_bar)
+    @defenses[0] = d
+  end
+
+  def set_red_defenses(d)
+    d = d.clone
+    d.unshift(:low_bar)
+    @defenses[1] = d
   end
 
   def blue_alliance(r1, r2, r3)
@@ -31,6 +44,10 @@ class Stronghold
 
   def defense_states
     @alliance.defense_states
+  end
+
+  def defense_names
+    defenses[@alliance.index]
   end
 
   def each_robot(&block)
@@ -96,6 +113,10 @@ class Stronghold
     @alliance.tower_strenth -= 1 if @alliance.tower_strenth > 0
   end
 
+  def get_defense_states
+    @alliance.defense_states
+  end
+
   def cross_defence(pos)
     puts "Cross defence #{pos}: #{@alliance.defense_states.inspect}"
     if (@alliance.defense_states[pos] -= 1) >= 0
@@ -103,6 +124,7 @@ class Stronghold
     end
 
     if breached? && !@alliance.breached
+      @alliance.breached = true
       @alliance.score += 20
     end
   end
@@ -117,13 +139,18 @@ class Stronghold
     end
   end
 
-  def challenge(pos = nil)
-    if pos.nil? || !@alliance.challenged[pos]
+  def challenged(pos = nil)
+    if pos.nil?
+      pos = @alliance.challenged.find_index { |v| !v }
+    end
+
+    if !pos.nil? && !@alliance.challenged[pos]
       @alliance.score += 5
-      @alliance.challenged[pos] = true if pos
+      @alliance.challenged[pos] = true
       if (@alliance.challenge_count += 1) >= 3
         if @alliance.tower_strenth <= 0
           @alliance.score += 25
+          @alliance.captured = true
         end
       end
     end
@@ -139,11 +166,15 @@ class Stronghold
   end
 
   def breached?
-    !@alliance.defense_states.find { |v| v > 0 } 
+    @alliance.defense_states.count { |v| v <= 0 } >= 4
   end
 
   def scale(pos=nil)
-    if pos.nil? || !@alliance.scaled[pos]
+    if pos.nil?
+      pos = @alliance.scaled.find_index { |v| !v }
+    end
+
+    if !pos.nil? && !@alliance.scaled[pos]
       @alliance.score += 10
       @alliance.scaled[pos] = true if pos
     end

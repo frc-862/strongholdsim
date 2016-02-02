@@ -25,6 +25,33 @@ class StatefulRobot < BaseRobot
     end
   end
 
+  def goto(state)
+    @state = state
+  end
+
+  def select_reasonable_defense
+    odds_to_cross = @game.defense_names.each_with_index.
+        map { |n, index| [@stats["cross_#{n}".to_sym].first, get_defense_states[index], n] }.
+        sort_by {|odds, count, name| [-odds, count] }
+
+    # check for an un-weakened defense that we have >= 50% chance of crossing
+    result = odds_to_cross.find { |odds, count, name| odds >= 50 && count > 0 }
+
+    if result.nil?
+      result = odds_to_cross.first
+    else
+      result = result
+    end
+    # puts result.inspect
+    # puts odds_to_cross.inspect
+
+    if result
+      @game.defense_names.find_index { |n| n == result.last }
+    else
+      nil
+    end
+  end
+
   def attempt(action, success, failure=:retry)
     puts "#{@game.clock} attempt: #{action}"
     chances = @stats[action]
@@ -74,6 +101,17 @@ class StatefulRobot < BaseRobot
         @state = failure if failure != :retry
       end
     end
+  end
+
+  def cross_name(index)
+    puts defense_names
+    name = defense_names[index]
+    name = "cross_#{name}".to_sym
+  end
+
+  def return_name(index)
+    name = defense_names[index]
+    name = "return_#{name}".to_sym
   end
 
   def method_missing(meth, *args, &block)
